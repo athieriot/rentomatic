@@ -1,0 +1,12 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET        /api/movies          controllers.Api.movies
+GET        /api/invoice         controllers.Api.invoice(movies: List[String] ?= List(), days: Int ?= 0)
+
+# Map static resources from the /public folder to the /assets URL path
+GET        /assets/*file        controllers.Assets.at(path="/public", file)
+
+
