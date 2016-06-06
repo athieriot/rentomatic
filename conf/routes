@@ -2,11 +2,20 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-# Home page
-GET        /api/movies          controllers.Api.movies
-GET        /api/invoice         controllers.Api.invoice(movies: List[String] ?= List(), days: Int ?= 0)
+###
+# summary: API definitions
+###
+GET     /api/movies             controllers.Api.movies
+GET     /api/invoice            controllers.Api.invoice(movies: List[String] ?= List(), days: Int ?= 0)
 
-# Map static resources from the /public folder to the /assets URL path
-GET        /assets/*file        controllers.Assets.at(path="/public", file)
+###
+# summary: swagger definition
+# description: for swagger UI to consume
+###
+GET     /docs/swagger.json      @controllers.Swagger.specs
 
+### NoDocs ###
+GET     /docs                   @controllers.Default.redirect(to = "/docs/swagger-ui/index.html?url=/docs/swagger.json#/routes")
+### NoDocs ###
+GET     /docs/swagger-ui/*file  controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 

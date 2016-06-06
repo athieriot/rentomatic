@@ -1,0 +1,13 @@
+---
+  swagger: "2.0"
+  info:
+  title: "Rentomatic API"
+  description: "All the rentals"
+  version: "1.0.0"
+  host: localhost:9000
+  schemes:
+  - "http"
+  consumes:
+  - application/json
+  produces:
+  - application/json

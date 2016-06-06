@@ -12,6 +12,8 @@ libraryDependencies ++= Seq(
   ws,
   filters,
   "net.codingwell" %% "scala-guice" % "4.0.1",
+  "com.iheart" %% "play-swagger" % "0.2.1-PLAY2.5",
+  "org.webjars" % "swagger-ui" % "2.1.4",
   specs2 % Test,
   "org.specs2" %% "specs2-matcher-extra" % "3.6.6" % "test"
 )
