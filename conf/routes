@@ -6,7 +6,8 @@
 # summary: API definitions
 ###
 GET     /api/movies             controllers.Api.movies
-GET     /api/invoice            controllers.Api.invoice(movies: List[String] ?= List(), days: Int ?= 0)
+GET     /api/pricing            controllers.Api.pricing(title: String, days: Int ?= 1)
+POST    /api/invoice            controllers.Api.invoice
 
 ###
 # summary: swagger definition

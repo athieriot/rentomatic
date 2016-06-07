@@ -12,7 +12,7 @@ libraryDependencies ++= Seq(
   ws,
   filters,
   "net.codingwell" %% "scala-guice" % "4.0.1",
-  "com.iheart" %% "play-swagger" % "0.2.1-PLAY2.5",
+  "com.iheart" %% "play-swagger" % "0.3.2-PLAY2.5",
   "org.webjars" % "swagger-ui" % "2.1.4",
   specs2 % Test,
   "org.specs2" %% "specs2-matcher-extra" % "3.6.6" % "test"
@@ -20,7 +20,10 @@ libraryDependencies ++= Seq(
 
 unmanagedResourceDirectories in Test <+= baseDirectory ( _ /"target/web/public/test" )
 
-resolvers += "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases"
+resolvers ++= Seq(
+  "scalaz-bintray" at "https://dl.bintray.com/scalaz/releases",
+  "bintray-iheartradio-maven" at "http://dl.bintray.com/iheartradio/maven"
+)
 
 coverageExcludedPackages := "controllers\\.Reverse.*;controllers\\.javascript.*;router.*"
 

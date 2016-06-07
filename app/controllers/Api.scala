@@ -1,23 +1,54 @@
 package controllers
 
-import javax.inject.Inject
+import java.time.LocalDate
 
+import models.{Movie, Rental}
 import play.api.libs.json.Json.toJson
+import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
-import services.RentEngine
 
-class Api @Inject() (engine: RentEngine) extends Controller {
+class Api extends Controller {
+
+  private val availableMovies = List(
+    Movie("Matrix 11", LocalDate.parse("2016-06-23")),
+    Movie("Spider Man", LocalDate.parse("2002-06-12")),
+    Movie("Spider Man 2", LocalDate.parse("2004-07-14")),
+    Movie("Out of Africa", LocalDate.parse("1986-03-26"))
+  )
 
   def movies = Action {
-    Ok(toJson(List("Matrix", "Spider Man", "Spider Man 2", "Out of Africa")))
+    Ok(toJson(availableMovies))
   }
 
-  def invoice(movies: List[String], days: Int) = Action {
+  def pricing(title: String, days: Int) = Action {
+    invoicing(RentalRequest(title, days)) match {
+      case Left(message) => NotFound(message)
+      case Right(price) =>
 
-    val price = movies
-      .map(engine.rentalPrice(_, days))
-      .map(p => s"$p SEK")
+        Ok(Json.obj("price" -> s"$price SEK"))
+    }
+  }
 
-    Ok(toJson(price))
+  case class RentalRequest(title: String, days: Int)
+
+  implicit val rentalFormat = Json.format[RentalRequest]
+
+  def invoice = Action(BodyParsers.parse.json) { request =>
+    val result = request.body.validate[List[RentalRequest]]
+    result.fold(
+      errors => BadRequest(JsError.toJson(errors)),
+      rentals => {
+        val total = rentals.map(invoicing).filter(_.isRight).map(_.right.get).sum
+
+        Ok(Json.obj("total" -> s"$total SEK"))
+      }
+    )
+  }
+
+  private def invoicing(rentalRequest: RentalRequest): Either[String, Double] = {
+    availableMovies.find(_.title == rentalRequest.title) match {
+      case None => Left(s"Movie ${rentalRequest.title} not found")
+      case Some(movie) => Right(Rental(movie, rentalRequest.days).price)
+    }
   }
 }
