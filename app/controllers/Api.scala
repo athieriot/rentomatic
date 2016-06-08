@@ -1,54 +1,70 @@
 package controllers
 
-import java.time.LocalDate
+import javax.inject.Inject
 
-import models.{Movie, Rental}
+import models.Rental
 import play.api.libs.json.Json.toJson
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
+import services.TMDBApi
 
-class Api extends Controller {
+import scala.concurrent.Future.{failed, sequence, successful}
+import scala.concurrent.{ExecutionContext, Future}
 
-  private val availableMovies = List(
-    Movie("Matrix 11", LocalDate.parse("2016-06-23")),
-    Movie("Spider Man", LocalDate.parse("2002-06-12")),
-    Movie("Spider Man 2", LocalDate.parse("2004-07-14")),
-    Movie("Out of Africa", LocalDate.parse("1986-03-26"))
-  )
+class Api @Inject() (tmdbApi: TMDBApi,
+                     implicit val context: ExecutionContext) extends Controller {
 
-  def movies = Action {
-    Ok(toJson(availableMovies))
-  }
-
-  def pricing(title: String, days: Int) = Action {
-    invoicing(RentalRequest(title, days)) match {
-      case Left(message) => NotFound(message)
-      case Right(price) =>
-
-        Ok(Json.obj("price" -> s"$price SEK"))
+  def popular = Action.async {
+    tmdbApi.popular().map(_.filterNot(_.adult)).map {
+      case Nil => NotFound("No movies found for your query")
+      case results => Ok(toJson(results))
     }
   }
 
-  case class RentalRequest(title: String, days: Int)
+  def search(query: String) = Action.async {
+    tmdbApi.search(query).map(_.filterNot(_.adult)).map {
+      case Nil => NotFound("No movies found for your query")
+      case results => Ok(toJson(results))
+    }
+  }
+
+  def pricing(id: Long, days: Int) = Action.async {
+    invoicing(RentalRequest(id, days)).map { rental =>
+
+      Ok(Json.obj("rental" -> toJson(rental), "price" -> s"${rental.price} SEK"))
+    } recover {
+      case e: NoSuchElementException => NotFound(e.getLocalizedMessage)
+    }
+  }
+
+  case class RentalRequest(id: Long, days: Int)
 
   implicit val rentalFormat = Json.format[RentalRequest]
 
-  def invoice = Action(BodyParsers.parse.json) { request =>
+  def invoice = Action.async(BodyParsers.parse.json) { request =>
     val result = request.body.validate[List[RentalRequest]]
     result.fold(
-      errors => BadRequest(JsError.toJson(errors)),
-      rentals => {
-        val total = rentals.map(invoicing).filter(_.isRight).map(_.right.get).sum
+      errors => successful(BadRequest(JsError.toJson(errors))),
+      rentalRequests => {
 
-        Ok(Json.obj("total" -> s"$total SEK"))
+        invoicing(rentalRequests).map { rentals =>
+
+          Ok(Json.obj("rentals" -> toJson(rentals), "total" -> s"${rentals.map(_.price).sum} SEK"))
+        } recover {
+          case e: NoSuchElementException => NotFound(e.getLocalizedMessage)
+        }
       }
     )
   }
 
-  private def invoicing(rentalRequest: RentalRequest): Either[String, Double] = {
-    availableMovies.find(_.title == rentalRequest.title) match {
-      case None => Left(s"Movie ${rentalRequest.title} not found")
-      case Some(movie) => Right(Rental(movie, rentalRequest.days).price)
+  private def invoicing(rentalRequests: List[RentalRequest]): Future[List[Rental]] = {
+    sequence(rentalRequests.map(invoicing))
+  }
+
+  private def invoicing(rentalRequest: RentalRequest): Future[Rental] = {
+    tmdbApi.findById(rentalRequest.id).flatMap {
+      case None =>        failed(new NoSuchElementException(s"Movie ${rentalRequest.id} not found"))
+      case Some(movie) => successful(Rental(movie, rentalRequest.days))
     }
   }
 }

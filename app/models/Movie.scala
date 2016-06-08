@@ -7,19 +7,24 @@ import play.api.libs.json.Json
 
 object ReleaseType extends Enumeration {
   type ReleaseType = Value
-  val NEW_RELEASE, REGULAR_RELEASE, OLD_RELEASE = Value
+  val NEW_RELEASE, REGULAR_RELEASE, OLD_RELEASE, NOT_RELEASED = Value
 }
 
-case class Movie(title: String, releaseDate: LocalDate) {
+case class Movie(id: Long,
+                 title: String,
+                 release_date: Option[LocalDate],
+                 adult: Boolean = false,
+                 poster_path: Option[String] = None) {
   import ReleaseType._
 
   private val NEW_RELEASE_MONTHS = 6
   private val OLD_RELEASE_YEARS = 15
 
-  val movieType = releaseDate match {
-    case recent if releaseDate.isAfter(now().minusMonths(NEW_RELEASE_MONTHS)) => NEW_RELEASE
-    case old if releaseDate.isBefore(now().minusYears(OLD_RELEASE_YEARS))     => OLD_RELEASE
-    case regular                                                              => REGULAR_RELEASE
+  val movieType = release_date match {
+    case Some(recent) if recent.isAfter(now().minusMonths(NEW_RELEASE_MONTHS)) => NEW_RELEASE
+    case Some(old) if old.isBefore(now().minusYears(OLD_RELEASE_YEARS))        => OLD_RELEASE
+    case Some(regular)                                                         => REGULAR_RELEASE
+    case None                                                                  => NOT_RELEASED
   }
 }
 

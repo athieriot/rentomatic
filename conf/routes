@@ -3,20 +3,28 @@
 # ~~~~
 
 ###
-# summary: API definitions
+# summary: Search for movies
 ###
-GET     /api/movies             controllers.Api.movies
-GET     /api/pricing            controllers.Api.pricing(title: String, days: Int ?= 1)
+GET     /api/search             controllers.Api.search(query: String)
+###
+# summary: Find most popular movies
+###
+GET     /api/popular            controllers.Api.popular
+###
+# summary: Get an estimation for the rental of a movie
+###
+GET     /api/pricing            controllers.Api.pricing(id: Long, days: Int ?= 1)
+###
+# summary: Rent some movies
+###
 POST    /api/invoice            controllers.Api.invoice
 
-###
-# summary: swagger definition
-# description: for swagger UI to consume
-###
-GET     /docs/swagger.json      @controllers.Swagger.specs
+### NoDocs ###
+GET     /api/docs               controllers.Default.redirect(to = "/docs/swagger-ui/index.html?url=/docs/swagger.json#/routes")
 
 ### NoDocs ###
-GET     /docs                   @controllers.Default.redirect(to = "/docs/swagger-ui/index.html?url=/docs/swagger.json#/routes")
+GET     /docs/swagger.json      @controllers.Swagger.specs
+
 ### NoDocs ###
 GET     /docs/swagger-ui/*file  controllers.Assets.at(path:String="/public/lib/swagger-ui", file:String)
 

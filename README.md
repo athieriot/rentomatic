@@ -12,15 +12,17 @@ Movie rental application
 
 ## Documentation
 
-Swagger UI accessible through: [http://localhost:9000/docs](http://localhost:9000/docs)
+Swagger UI accessible through: [http://localhost:9000/api/docs](http://localhost:9000/api/docs)
 
 ## Example
 
-      curl "http://localhost:9000/api/movies"
+      curl "http://localhost:9000/api/popular"
+      
+      curl "http://localhost:9000/api/search?query=matrix"
 
-      curl "http://localhost:9000/api/pricing?title=Matrix 11&days=2"
+      curl "http://localhost:9000/api/pricing?id=603&days=2"
       
       curl -X POST \
            -H "Content-Type: application/json" \
-           -d '[{ "title": "Matrix 11", "days": 1 }, { "title": "Out of Africa", "days": 7 }]' \
+           -d '[{ "id": 603, "days": 1 }, { "id": 606, "days": 7 }]' \
           http://localhost:9000/api/invoice

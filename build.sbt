@@ -27,6 +27,6 @@ resolvers ++= Seq(
 
 coverageExcludedPackages := "controllers\\.Reverse.*;controllers\\.javascript.*;router.*"
 
-coverageMinimum := 80
+coverageMinimum := 90
 
 coverageFailOnMinimum := true
