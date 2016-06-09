@@ -4,9 +4,9 @@ Movie rental application
 
 ## Usage
 
-      sbt run
+      sbt clean run
       
-      sbt test
+      sbt clean test
       
       sbt clean coverage test coverageReport
 
@@ -26,3 +26,5 @@ Swagger UI accessible through: [http://localhost:9000/api/docs](http://localhost
            -H "Content-Type: application/json" \
            -d '[{ "id": 603, "days": 1 }, { "id": 606, "days": 7 }]' \
           http://localhost:9000/api/invoice
+          
+      curl "http://localhost:9000/api/invoice"

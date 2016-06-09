@@ -18,6 +18,10 @@ GET     /api/pricing            controllers.Api.pricing(id: Long, days: Int ?= 1
 # summary: Rent some movies
 ###
 POST    /api/invoice            controllers.Api.invoice
+###
+# summary: See previous invoices
+###
+GET     /api/invoice            controllers.Api.invoices
 
 ### NoDocs ###
 GET     /api/docs               controllers.Default.redirect(to = "/docs/swagger-ui/index.html?url=/docs/swagger.json#/routes")
