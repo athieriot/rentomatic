@@ -40,6 +40,8 @@ POST    /api/rental/returns     controllers.ReturnApi.returns(returnDate: Option
 GET     /api/profile/bonus      controllers.ReturnApi.bonus
 
 ### NoDocs ###
+GET     /                       controllers.Default.redirect(to = "/api/docs")
+### NoDocs ###
 GET     /api/docs               controllers.Default.redirect(to = "/docs/swagger-ui/index.html?url=/docs/swagger.json#/routes")
 
 ### NoDocs ###
