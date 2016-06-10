@@ -26,5 +26,12 @@ class MovieTest extends PlaySpecification {
     "be a regular release between 15 years and 6 months" in {
       Movie(1, "Spider Man", Some(LocalDate.now().minus(2, YEARS))).releaseType must beEqualTo(REGULAR_RELEASE)
     }
+
+    "reward with bonus points based on Release Types" in {
+
+      List(REGULAR_RELEASE, NOT_RELEASED, NEW_RELEASE).map(bonus).sum should beEqualTo(3)
+      List(NEW_RELEASE, NOT_RELEASED, NEW_RELEASE).map(bonus).sum should beEqualTo(4)
+      List(REGULAR_RELEASE, NOT_RELEASED).map(bonus).sum should beEqualTo(1)
+    }
   }
 }

@@ -289,4 +289,23 @@ class ApiTest extends PlaySpecification with JsonMatchers with Mockito {
       there was no(mockInvoiceRepository).update(any[Invoice])
     }
   }
+
+  "The returns API" should {
+
+    "reward rental with bonus points" in new WithApplication(injectable) {
+      val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
+      mockInvoiceRepository.invoices() returns Future.successful(List(
+        Invoice(randomUUID(), 666, REGULAR_RELEASE, 0.0),
+        Invoice(randomUUID(), 667, REGULAR_RELEASE, 25.0),
+        Invoice(randomUUID(), 668, NEW_RELEASE, 30.0),
+        Invoice(randomUUID(), 669, NEW_RELEASE, 250.0)
+      ))
+
+      val Some(result) = route(app, FakeRequest(GET, "/api/bonus"))
+
+      status(result) must equalTo(OK)
+      contentType(result) must beSome("application/json")
+      contentAsString(result) must /("points" -> 6)
+    }
+  }
 }

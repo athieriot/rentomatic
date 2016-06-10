@@ -35,3 +35,5 @@ Swagger UI accessible through: [http://localhost:9000/api/docs](http://localhost
            -H "Content-Type: application/json" \
            -d '[603, 606]' \
            http://localhost:9000/api/returns?returnDate=2016-07-19T00:00:00Z | python -m json.tool
+           
+       curl "http://localhost:9000/api/bonus" | python -m json.tool

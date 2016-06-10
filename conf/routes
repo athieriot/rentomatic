@@ -34,6 +34,10 @@ GET     /api/invoice            controllers.Api.invoices
 #       $ref: '#/definitions/scala.collection.immutable.List[java.lang.Long]'
 ###
 POST    /api/returns            controllers.Api.returns(returnDate: Option[String])
+###
+# summary: See earned bonus points
+###
+GET     /api/bonus              controllers.Api.bonus
 
 ### NoDocs ###
 GET     /api/docs               controllers.Default.redirect(to = "/docs/swagger-ui/index.html?url=/docs/swagger.json#/routes")

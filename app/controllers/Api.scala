@@ -4,7 +4,7 @@ import java.time.Instant
 import javax.inject.Inject
 
 import models.ReleaseType.NOT_RELEASED
-import models.{Invoice, Movie, Rental}
+import models.{Invoice, Movie, ReleaseType, Rental}
 import play.api.libs.json.Json.toJson
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
@@ -101,6 +101,15 @@ class Api @Inject() (tmdbApi: TMDBApi,
           }
       }
     )
+  }
+
+  def bonus = Action.async { request =>
+    invoiceRepository.invoices().map { invoices =>
+
+      Ok(Json.obj(
+        "points" -> invoices.map(_.releaseType).map(ReleaseType.bonus).sum
+      ))
+    }
   }
 
   private def invoicing(rentalRequests: List[RentalRequest]): Future[List[Rental]] = {

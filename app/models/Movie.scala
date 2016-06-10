@@ -13,6 +13,12 @@ object ReleaseType extends Enumeration {
     def reads(json: JsValue) = JsSuccess(ReleaseType.withName(json.as[String]))
     def writes(releaseType: ReleaseType) = JsString(releaseType.toString)
   }
+
+  def bonus(releaseType: ReleaseType): Int = { releaseType match {
+    case NOT_RELEASED => 0
+    case NEW_RELEASE  => 2
+    case _            => 1
+  }}
 }
 
 case class Movie(id: Long,
