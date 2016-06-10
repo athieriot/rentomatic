@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-slick"             % "2.0.0",
   "com.typesafe.play" %% "play-slick-evolutions"  % "2.0.0",
   "com.h2database"    % "h2"                      % "1.4.191",
+  "org.postgresql"    % "postgresql"              % "9.4-1206-jdbc41",
   specs2                                                            % Test,
   "org.specs2"        %% "specs2-matcher-extra"   % "3.6.6"         % Test
 )

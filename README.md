@@ -2,6 +2,8 @@
 
 Movie rental application
 
+You can visit online: https://rent-o-matic.herokuapp.com
+
 ## Usage
 
       sbt clean run
@@ -37,3 +39,7 @@ Swagger UI accessible through: [http://localhost:9000/api/docs](http://localhost
            http://localhost:9000/api/rental/returns?returnDate=2016-07-19T00:00:00Z | python -m json.tool
            
        curl "http://localhost:9000/api/profile/bonus" | python -m json.tool
+
+# Deployment
+
+      git push heroku master
