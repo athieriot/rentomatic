@@ -19,7 +19,7 @@ class InvoiceRepositoryTest extends PlaySpecification {
     builder.configure(Configuration(
       "slick.dbs.default.driver" -> "slick.driver.H2Driver$",
       "slick.dbs.default.db.driver" -> "org.h2.Driver",
-      "slick.dbs.default.db.url" -> "jdbc:h2:mem:play;MODE=PostgreSQL;DATABASE_TO_UPPER=FALSE"
+      "slick.dbs.default.db.url" -> s"jdbc:h2:mem:${this.getClass.getSimpleName};MODE=PostgreSQL;DATABASE_TO_UPPER=FALSE"
     ))
   }
 

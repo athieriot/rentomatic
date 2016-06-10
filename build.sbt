@@ -41,7 +41,7 @@ scalacOptions ++= Seq(
   "-language:experimental.macros" // Enable support for experimental macros for Mockito
 )
 
-coverageExcludedPackages := "controllers\\.Reverse.*;controllers\\.javascript.*;router.*"
+coverageExcludedPackages := "controllers\\.Reverse.*;controllers\\.Reverse.*;controllers\\.javascript.*;router.*"
 
 coverageMinimum := 90
 

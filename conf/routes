@@ -5,15 +5,15 @@
 ###
 # summary: Search for movies
 ###
-GET     /api/search             controllers.Api.search(query: String)
+GET     /api/movie/search       controllers.MovieApi.search(query: String)
 ###
 # summary: Find most popular movies
 ###
-GET     /api/popular            controllers.Api.popular
+GET     /api/movie/popular      controllers.MovieApi.popular
 ###
 # summary: Get an estimation for the rental of a movie
 ###
-GET     /api/pricing            controllers.Api.pricing(id: Long, days: Int ?= 1)
+GET     /api/rental/pricing     controllers.RentalApi.pricing(id: Long, days: Int ?= 1)
 ###
 # summary: Rent some movies
 # parameters:
@@ -21,11 +21,11 @@ GET     /api/pricing            controllers.Api.pricing(id: Long, days: Int ?= 1
 #     schema:
 #       $ref: '#/definitions/scala.collection.immutable.List[controllers.Api.RentalRequest]'
 ###
-POST    /api/invoice            controllers.Api.invoice
+POST    /api/rental/invoice     controllers.RentalApi.invoice
 ###
 # summary: See previous invoices
 ###
-GET     /api/invoice            controllers.Api.invoices
+GET     /api/rental/invoice     controllers.RentalApi.invoices
 ###
 # summary: Return the movies
 # parameters:
@@ -33,11 +33,11 @@ GET     /api/invoice            controllers.Api.invoices
 #     schema:
 #       $ref: '#/definitions/scala.collection.immutable.List[java.lang.Long]'
 ###
-POST    /api/returns            controllers.Api.returns(returnDate: Option[String])
+POST    /api/rental/returns     controllers.ReturnApi.returns(returnDate: Option[String])
 ###
 # summary: See earned bonus points
 ###
-GET     /api/bonus              controllers.Api.bonus
+GET     /api/profile/bonus      controllers.ReturnApi.bonus
 
 ### NoDocs ###
 GET     /api/docs               controllers.Default.redirect(to = "/docs/swagger-ui/index.html?url=/docs/swagger.json#/routes")

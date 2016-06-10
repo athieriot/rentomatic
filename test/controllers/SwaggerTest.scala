@@ -12,7 +12,7 @@ class SwaggerTest extends PlaySpecification with JsonMatchers {
       status(result) must equalTo(OK)
       contentType(result) must beSome("application/json")
       contentAsString(result) must */("description" -> "All the rentals")
-      contentAsString(result) must /("paths") /("/api/search") */("Search for movies")
+      contentAsString(result) must /("paths") /("/api/movie/search") */("Search for movies")
     }
   }
 }
