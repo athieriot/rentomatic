@@ -14,17 +14,24 @@ Movie rental application
 
 Swagger UI accessible through: [http://localhost:9000/api/docs](http://localhost:9000/api/docs)
 
-## Example
+## Examples
 
-      curl "http://localhost:9000/api/popular"
+      curl "http://localhost:9000/api/popular" | python -m json.tool
       
-      curl "http://localhost:9000/api/search?query=matrix"
+      curl "http://localhost:9000/api/search?query=matrix" | python -m json.tool
+      
+      curl "http://localhost:9000/api/search?query=out%20of%20africa" | python -m json.tool
 
-      curl "http://localhost:9000/api/pricing?id=603&days=2"
+      curl "http://localhost:9000/api/pricing?id=603&days=2" | python -m json.tool
       
       curl -X POST \
            -H "Content-Type: application/json" \
            -d '[{ "id": 603, "days": 1 }, { "id": 606, "days": 7 }]' \
-          http://localhost:9000/api/invoice
+          http://localhost:9000/api/invoice | python -m json.tool
           
-      curl "http://localhost:9000/api/invoice"
+      curl "http://localhost:9000/api/invoice" | python -m json.tool
+      
+      curl -X POST \
+           -H "Content-Type: application/json" \
+           -d '[603, 606]' \
+           http://localhost:9000/api/returns?returnDate=2016-07-19T00:00:00Z | python -m json.tool

@@ -1,10 +1,13 @@
 package controllers
 
 import java.sql.Timestamp
+import java.time.Instant.now
 import java.time.temporal.ChronoUnit._
 import java.time.{Instant, LocalDate}
 import java.util.UUID
+import java.util.UUID.randomUUID
 
+import models.ReleaseType.{NEW_RELEASE, REGULAR_RELEASE}
 import models.{Invoice, Movie, Rental}
 import org.specs2.matcher.JsonMatchers
 import org.specs2.mock._
@@ -20,6 +23,8 @@ import scala.concurrent.Future.successful
 
 
 class ApiTest extends PlaySpecification with JsonMatchers with Mockito {
+
+  sequential
 
   private val injectable = { builder: GuiceApplicationBuilder =>
     builder.overrides(
@@ -125,7 +130,6 @@ class ApiTest extends PlaySpecification with JsonMatchers with Mockito {
       mockTMDBApi.findById(4) returns successful(Some(outOfAfrica))
 
       val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
-      //TODO: That's probably the mock too much
       mockInvoiceRepository.save(anyListOf[Rental]) answers { i =>
         val rentals = i.asInstanceOf[List[Rental]]
         val invoices = rentals.map(Invoice.fromRental)
@@ -203,7 +207,7 @@ class ApiTest extends PlaySpecification with JsonMatchers with Mockito {
     "be able to display previous invoices" in new WithApplication(injectable) {
       val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
       mockInvoiceRepository.invoices() returns Future.successful(List(
-        Invoice(UUID.fromString("517b0a78-4fa3-48ee-9f48-a51e2f38e972"), 666, 25, Timestamp.from(Instant.parse("1982-12-18T00:00:00Z")))
+        Invoice(UUID.fromString("517b0a78-4fa3-48ee-9f48-a51e2f38e972"), 666, REGULAR_RELEASE, 25, Timestamp.from(Instant.parse("1982-12-18T00:00:00Z")))
       ))
 
       val Some(result) = route(app, FakeRequest(GET, "/api/invoice"))
@@ -212,8 +216,77 @@ class ApiTest extends PlaySpecification with JsonMatchers with Mockito {
       contentType(result) must beSome("application/json")
       contentAsString(result) must */("id" -> "517b0a78-4fa3-48ee-9f48-a51e2f38e972")
       contentAsString(result) must */("movieId" -> 666)
+      contentAsString(result) must */("releaseType" -> "REGULAR_RELEASE")
       contentAsString(result) must */("paid" -> 25)
       contentAsString(result) must */("date" -> "1982-12-18T00:00:00.00Z")
+    }
+  }
+
+  "The returns API" should {
+
+    "be able to complete invoices" in new WithApplication(injectable) {
+      val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
+      mockInvoiceRepository.update(any[Invoice]) answers { i => successful(i.asInstanceOf[Invoice]) }
+      mockInvoiceRepository.findByMovieIds(anyListOf[Long]) answers { is =>
+        val invoices = is.asInstanceOf[List[Long]].map(i => Invoice(randomUUID(), i, NEW_RELEASE, 0.0))
+        successful(invoices)
+      }
+
+      val Some(result) = route(app, FakeRequest(POST, s"/api/returns?returnDate=${now().plus(2, DAYS)}").withJsonBody(Json.parse(
+        """
+          |[606,603]
+        """.stripMargin)))
+
+      status(result) must equalTo(OK)
+      contentType(result) must beSome("application/json")
+      contentAsString(result) must /("invoices") */("movieId" -> 606)
+      contentAsString(result) must /("invoices") */("movieId" -> 603)
+      contentAsString(result) must /("invoices") */("extraCharge" -> 40.0)
+      contentAsString(result) must /("extraCharge" -> "80.0 SEK")
+
+      there was two(mockInvoiceRepository).update(any[Invoice])
+    }
+
+    "not be able to return more movies than invoiced" in new WithApplication(injectable) {
+      val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
+      mockInvoiceRepository.findByMovieIds(anyListOf[Long]) returns Future.successful(List())
+
+      val Some(result) = route(app, FakeRequest(POST, "/api/returns").withJsonBody(Json.parse(
+        """
+          |[606,603]
+        """.stripMargin)))
+
+      status(result) must equalTo(NOT_FOUND)
+      contentAsString(result) must beEqualTo("Unable to find the following movies: 606, 603")
+    }
+
+    "not be able to return already completed invoices" in new WithApplication(injectable) {
+      val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
+      mockInvoiceRepository.findByMovieIds(anyListOf[Long]) returns Future.successful(List(
+        Invoice(randomUUID(), 606, REGULAR_RELEASE, 20.0, returnDate = Some(Timestamp.from(now())), extraCharge = Some(0.0))
+      ))
+
+      val Some(result) = route(app, FakeRequest(POST, "/api/returns").withJsonBody(Json.parse(
+        """
+          |[606]
+        """.stripMargin)))
+
+      status(result) must equalTo(CONFLICT)
+      contentAsString(result) must beEqualTo("The following movies were already returned: 606")
+      there was no(mockInvoiceRepository).update(any[Invoice])
+    }
+
+    "not be able to take invalid values" in new WithApplication(injectable) {
+      val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
+
+      val Some(result) = route(app, FakeRequest(POST, "/api/returns").withJsonBody(Json.parse(
+        """
+          |{}
+        """.stripMargin)))
+
+      status(result) must equalTo(BAD_REQUEST)
+      contentAsString(result) must */("error.expected.jsarray")
+      there was no(mockInvoiceRepository).update(any[Invoice])
     }
   }
 }

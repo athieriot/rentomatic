@@ -3,11 +3,16 @@ package models
 import java.time.LocalDate
 import java.time.LocalDate.now
 
-import play.api.libs.json.Json
+import play.api.libs.json._
 
 object ReleaseType extends Enumeration {
   type ReleaseType = Value
   val NEW_RELEASE, REGULAR_RELEASE, OLD_RELEASE, NOT_RELEASED = Value
+
+  implicit val releaseTypeFormat = new Format[ReleaseType] {
+    def reads(json: JsValue) = JsSuccess(ReleaseType.withName(json.as[String]))
+    def writes(releaseType: ReleaseType) = JsString(releaseType.toString)
+  }
 }
 
 case class Movie(id: Long,
@@ -20,7 +25,7 @@ case class Movie(id: Long,
   private val NEW_RELEASE_MONTHS = 6
   private val OLD_RELEASE_YEARS = 15
 
-  val movieType = release_date match {
+  val releaseType = release_date match {
     case Some(recent) if recent.isAfter(now().minusMonths(NEW_RELEASE_MONTHS)) => NEW_RELEASE
     case Some(old) if old.isBefore(now().minusYears(OLD_RELEASE_YEARS))        => OLD_RELEASE
     case Some(regular)                                                         => REGULAR_RELEASE
