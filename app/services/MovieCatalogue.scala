@@ -10,8 +10,8 @@ import play.api.libs.ws.{WSClient, WSResponse}
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class TMDBApi @Inject() (ws: WSClient,
-                         config: Configuration)(implicit val context: ExecutionContext) {
+class MovieCatalogue @Inject()(ws: WSClient,
+                               config: Configuration)(implicit val context: ExecutionContext) {
 
   private val api_key: String = config.getString("tmdb.api.key").get
   private val base_url: String = config.getString("tmdb.base.url").get

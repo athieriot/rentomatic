@@ -8,13 +8,13 @@ import play.api.libs.json.Json.toJson
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc._
 import repositories.InvoiceRepository
-import services.TMDBApi
+import services.MovieCatalogue
 
 import scala.concurrent.Future.{sequence, successful}
 import scala.concurrent.{ExecutionContext, Future}
 
 //TODO: Add basic comments
-class ReturnApi @Inject()(tmdbApi: TMDBApi,
+class ReturnApi @Inject()(movieCatalogue: MovieCatalogue,
                           invoiceRepository: InvoiceRepository)(implicit val context: ExecutionContext) extends Controller {
 
   def returns(returnDate: Option[String]) = Action.async(BodyParsers.parse.json) { request =>

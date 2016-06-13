@@ -1,6 +1,6 @@
 package controllers
 
-import java.sql.Timestamp
+import java.sql.{SQLException, Timestamp}
 import java.time.temporal.ChronoUnit._
 import java.time.{Instant, LocalDate}
 import java.util.UUID
@@ -10,10 +10,12 @@ import models.ReleaseType.{apply => _, _}
 import models.{Invoice, Movie, Rental}
 import org.specs2.matcher.JsonMatchers
 import org.specs2.mock.Mockito
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
-import play.api.test.{FakeRequest, PlaySpecification, WithApplication}
+import play.api.libs.ws.WSClient
+import play.api.test.{FakeRequest, PlaySpecification, WithApplication, WithServer}
 import repositories.InvoiceRepository
-import services.TMDBApi
+import services.MovieCatalogue
 
 import scala.concurrent.Future
 import scala.concurrent.Future._
@@ -30,8 +32,8 @@ class RentalApiTest extends PlaySpecification with JsonMatchers with Mockito wit
   "The pricing API" should {
 
     "be able to compute invoice pricing" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
-      mockTMDBApi.findById(1) returns successful(Some(matrix))
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
+      mockMovieCatalogue.findById(1) returns successful(Some(matrix))
 
       val Some(result) = route(app, FakeRequest(GET, "/api/rental/pricing?id=1&days=2"))
 
@@ -42,23 +44,24 @@ class RentalApiTest extends PlaySpecification with JsonMatchers with Mockito wit
     }
 
     "warn the user if movie is not available" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
-      mockTMDBApi.findById(4) returns successful(None)
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
+      mockMovieCatalogue.findById(4) returns successful(None)
 
       val Some(result) = route(app, FakeRequest(GET, "/api/rental/pricing?id=4"))
 
       status(result) must equalTo(NOT_FOUND)
-      contentAsString(result) must contain("Movie 4 not found")
+      contentType(result) must beSome("application/json")
+      contentAsString(result) must beEqualTo("\"Movie 4 not found\"")
     }
   }
 
   "The invoice API" should {
     "invoice a rental of several movies" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
-      mockTMDBApi.findById(1) returns successful(Some(matrix))
-      mockTMDBApi.findById(2) returns successful(Some(spidy))
-      mockTMDBApi.findById(3) returns successful(Some(spidy2))
-      mockTMDBApi.findById(4) returns successful(Some(outOfAfrica))
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
+      mockMovieCatalogue.findById(1) returns successful(Some(matrix))
+      mockMovieCatalogue.findById(2) returns successful(Some(spidy))
+      mockMovieCatalogue.findById(3) returns successful(Some(spidy2))
+      mockMovieCatalogue.findById(4) returns successful(Some(outOfAfrica))
 
       val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
       mockInvoiceRepository.save(anyListOf[Rental]) answers { i =>
@@ -85,7 +88,7 @@ class RentalApiTest extends PlaySpecification with JsonMatchers with Mockito wit
           |}]
         """.stripMargin)))
 
-      status(result) must equalTo(OK)
+      status(result) must equalTo(CREATED)
       contentAsString(result) must */("rentals") */("title" -> "Matrix 11")
       contentAsString(result) must */("invoices") */("paid" -> 40)
       contentAsString(result) must */("total" -> "250.0 SEK")
@@ -94,9 +97,9 @@ class RentalApiTest extends PlaySpecification with JsonMatchers with Mockito wit
     }
 
     "error on unknown movies from invoice" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
-      mockTMDBApi.findById(1) returns successful(Some(matrix))
-      mockTMDBApi.findById(99) returns successful(None)
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
+      mockMovieCatalogue.findById(1) returns successful(Some(matrix))
+      mockMovieCatalogue.findById(99) returns successful(None)
 
       val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
 
@@ -112,13 +115,32 @@ class RentalApiTest extends PlaySpecification with JsonMatchers with Mockito wit
         """.stripMargin)))
 
       status(result) must equalTo(NOT_FOUND)
-      contentAsString(result) must beEqualTo("Movie 99 not found")
+      contentType(result) must beSome("application/json")
+      contentAsString(result) must beEqualTo("\"Movie 99 not found\"")
 
       there was no(mockInvoiceRepository).save(anyListOf[Rental])
     }
 
+    "handle error as json content" in new WithServer(injectable.apply(GuiceApplicationBuilder()).build()) {
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
+      mockMovieCatalogue.findById(1) returns successful(Some(matrix))
+
+      val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
+      mockInvoiceRepository.save(anyListOf[Rental]) returns failed(new SQLException("That won't happen"))
+
+      val ws = app.injector.instanceOf[WSClient]
+
+      val response = await(ws.url("http://localhost:19001/api/rental/invoice")
+        .withHeaders("Content-Type" -> "application/json")
+        .post("[{\"id\": 1, \"days\": 1}]")
+      )
+
+      response.status must equalTo(INTERNAL_SERVER_ERROR)
+      response.body must beEqualTo("\"A server error occurred: That won't happen\"")
+    }
+
     "show request errors" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
       val mockInvoiceRepository: InvoiceRepository = app.injector.instanceOf[InvoiceRepository]
 
       val Some(result) = route(app, FakeRequest(POST, "/api/rental/invoice").withJsonBody(Json.parse(
@@ -131,7 +153,7 @@ class RentalApiTest extends PlaySpecification with JsonMatchers with Mockito wit
       status(result) must equalTo(BAD_REQUEST)
       contentAsString(result) must */("error.path.missing")
 
-      there was no(mockTMDBApi).findById(anyLong)
+      there was no(mockMovieCatalogue).findById(anyLong)
       there was no(mockInvoiceRepository).save(anyListOf[Rental])
     }
 

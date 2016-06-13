@@ -30,7 +30,6 @@ case class Invoice(id: UUID,
       val totalDays = between(date.toInstant, returnTimestamp.toInstant).toDays
       val totalPrice = Rental.price(releaseType, totalDays.toInt)
 
-      //TODO: Should we refund for paying too much?
       val charge = if (totalPrice - paid < 0) 0 else totalPrice - paid
 
       Logger.info(s"Invoice $id has been completed after $totalDays days and with an extra charge of $charge SEK")

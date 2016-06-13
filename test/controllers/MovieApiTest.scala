@@ -8,7 +8,7 @@ import models.Movie
 import org.specs2.matcher.JsonMatchers
 import org.specs2.mock.Mockito
 import play.api.test.{FakeRequest, PlaySpecification, WithApplication}
-import services.TMDBApi
+import services.MovieCatalogue
 
 import scala.concurrent.Future._
 
@@ -22,8 +22,8 @@ class MovieApiTest extends PlaySpecification with JsonMatchers with Mockito with
   "The search API" should {
 
     "propose to search for movies to rent" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
-      mockTMDBApi.search("matrix") returns successful(List(matrix))
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
+      mockMovieCatalogue.search("matrix") returns successful(List(matrix))
 
       val Some(result) = route(app, FakeRequest(GET, "/api/movie/search?query=matrix"))
 
@@ -34,16 +34,16 @@ class MovieApiTest extends PlaySpecification with JsonMatchers with Mockito with
     }
 
     "not be able to search an empty query" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
       val Some(result) = route(app, FakeRequest(GET, "/api/movie/search"))
 
       status(result) must equalTo(BAD_REQUEST)
-      there was no(mockTMDBApi).search(anyString)
+      there was no(mockMovieCatalogue).search(anyString)
     }
 
     "handle empty results" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
-      mockTMDBApi.search("blabla") returns successful(List())
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
+      mockMovieCatalogue.search("blabla") returns successful(List())
 
       val Some(result) = route(app, FakeRequest(GET, "/api/movie/search?query=blabla"))
 
@@ -55,8 +55,8 @@ class MovieApiTest extends PlaySpecification with JsonMatchers with Mockito with
   "The popular movies API" should {
 
     "be able to show most popular movies" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
-      mockTMDBApi.popular() returns successful(List(matrix, spidy))
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
+      mockMovieCatalogue.popular() returns successful(List(matrix, spidy))
 
       val Some(result) = route(app, FakeRequest(GET, "/api/movie/popular"))
 
@@ -67,8 +67,8 @@ class MovieApiTest extends PlaySpecification with JsonMatchers with Mockito with
     }
 
     "handle empty results" in new WithApplication(injectable) {
-      val mockTMDBApi: TMDBApi = app.injector.instanceOf[TMDBApi]
-      mockTMDBApi.popular() returns successful(List())
+      val mockMovieCatalogue: MovieCatalogue = app.injector.instanceOf[MovieCatalogue]
+      mockMovieCatalogue.popular() returns successful(List())
 
       val Some(result) = route(app, FakeRequest(GET, "/api/movie/popular"))
 

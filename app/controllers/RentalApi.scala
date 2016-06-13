@@ -7,12 +7,12 @@ import play.api.libs.json.Json._
 import play.api.libs.json.{JsError, Json}
 import play.api.mvc.{Action, BodyParsers, Controller}
 import repositories.InvoiceRepository
-import services.TMDBApi
+import services.MovieCatalogue
 
 import scala.concurrent.Future._
 import scala.concurrent.{ExecutionContext, Future}
 
-class RentalApi @Inject()(tmdbApi: TMDBApi,
+class RentalApi @Inject()(movieCatalogue: MovieCatalogue,
                           invoiceRepository: InvoiceRepository)(implicit val context: ExecutionContext) extends Controller {
 
   def pricing(id: Long, days: Int) = Action.async {
@@ -20,7 +20,7 @@ class RentalApi @Inject()(tmdbApi: TMDBApi,
 
       Ok(Json.obj("rental" -> toJson(rental), "price" -> s"${rental.price} SEK"))
     } recover {
-      case e: NoSuchElementException => NotFound(e.getLocalizedMessage)
+      case e: NoSuchElementException => NotFound(toJson(e.getLocalizedMessage))
     }
   }
 
@@ -28,7 +28,6 @@ class RentalApi @Inject()(tmdbApi: TMDBApi,
 
   implicit val rentalFormat = Json.format[RentalRequest]
 
-  //TODO: Better error management for other Exception (Such as SQL exceptions)
   def invoice = Action.async(BodyParsers.parse.json) { request =>
     val result = request.body.validate[List[RentalRequest]]
     result.fold(
@@ -40,14 +39,14 @@ class RentalApi @Inject()(tmdbApi: TMDBApi,
           .map(pairs => {
             val (rentals, invoices) = pairs.unzip
 
-            Ok(Json.obj(
+            Created(Json.obj(
               "rentals" -> toJson(rentals),
               "invoices" -> toJson(invoices),
               "total" -> s"${invoices.map(_.paid).sum} SEK"
             ))
           })
           .recover {
-            case e: NoSuchElementException => NotFound(e.getLocalizedMessage)
+            case e: NoSuchElementException => NotFound(toJson(e.getLocalizedMessage))
           }
       }
     )
@@ -63,7 +62,7 @@ class RentalApi @Inject()(tmdbApi: TMDBApi,
 
   // findById is called multiple times because there is not (as I know of) any API to requests more than one movie at a time
   private def invoicing(rentalRequest: RentalRequest): Future[Rental] = {
-    tmdbApi.findById(rentalRequest.id).flatMap {
+    movieCatalogue.findById(rentalRequest.id).flatMap {
       case None =>        failed(new NoSuchElementException(s"Movie ${rentalRequest.id} not found"))
       case Some(movie) => successful(Rental(movie, rentalRequest.days))
     }

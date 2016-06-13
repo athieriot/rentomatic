@@ -12,13 +12,13 @@ import play.api.test._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-class TMDBApiTest extends PlaySpecification with WsMockClient {
+class MovieCatalogueTest extends PlaySpecification with WsMockClient {
 
   sequential
 
-  "The Movie Database API" should {
+  "The Movie Catalogue" should {
     "propose a list of popular movies" in {
-      withTMDBApi {
+      withMovieCatalogue {
         case play.api.routing.sird.GET(p"/movie/popular") => Action {
           Results.Ok(Json.parse(
             """
@@ -60,7 +60,7 @@ class TMDBApiTest extends PlaySpecification with WsMockClient {
     }
 
     "handle no popular movies" in {
-      withTMDBApi {
+      withMovieCatalogue {
         case play.api.routing.sird.GET(p"/movie/popular") => Action {
           Results.Ok(Json.parse(
             """
@@ -78,7 +78,7 @@ class TMDBApiTest extends PlaySpecification with WsMockClient {
     }
 
     "be able to search for movies by title" in {
-      withTMDBApi {
+      withMovieCatalogue {
         case play.api.routing.sird.GET(p"/search/movie") => Action {
           Results.Ok(Json.parse(
             """
@@ -120,7 +120,7 @@ class TMDBApiTest extends PlaySpecification with WsMockClient {
     }
 
     "handle empty search results" in {
-      withTMDBApi {
+      withMovieCatalogue {
         case play.api.routing.sird.GET(p"/search/movie") => Action {
           Results.Ok(Json.parse(
             """
@@ -138,7 +138,7 @@ class TMDBApiTest extends PlaySpecification with WsMockClient {
     }
 
     "be able to search movies by id" in {
-      withTMDBApi {
+      withMovieCatalogue {
         case play.api.routing.sird.GET(p"/movie/603") => Action {
           Results.Ok(Json.parse(
             """
@@ -186,7 +186,7 @@ class TMDBApiTest extends PlaySpecification with WsMockClient {
     }
 
     "handle movie not found by id" in {
-      withTMDBApi {
+      withMovieCatalogue {
         case play.api.routing.sird.GET(p"/movie/99") => Action {
           Results.NotFound
         }
@@ -198,7 +198,7 @@ class TMDBApiTest extends PlaySpecification with WsMockClient {
     }
 
     "support empty release dates" in {
-      withTMDBApi {
+      withMovieCatalogue {
         case play.api.routing.sird.GET(p"/movie/313428") => Action {
           Results.Ok(Json.parse(
             """
