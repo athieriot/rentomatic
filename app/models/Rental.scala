@@ -13,6 +13,13 @@ object Rental {
   private val PREMIUM_PRICE: Int = 40
   private val BASIC_PRICE: Int = 30
 
+  /**
+    * Core rule for a rental Pricing calculation.
+    *
+    * @param releaseType a release type Enumeration value
+    * @param days number of days of a rental
+    * @return the price of such a rental
+    */
   def price(releaseType: ReleaseType, days: Int): Double = releaseType match {
     case _ if days == 0   => 0
     case NOT_RELEASED     => 0

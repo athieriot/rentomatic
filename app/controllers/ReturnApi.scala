@@ -13,7 +13,15 @@ import services.MovieCatalogue
 import scala.concurrent.Future.{sequence, successful}
 import scala.concurrent.{ExecutionContext, Future}
 
-//TODO: Add basic comments
+/**
+  * Once a customer watched the movie, he will need to return it. Some extra cost might be charged.
+  *
+  * Rentals will also give Bonus Points regardless of the number of days nor if a rental has been returned.
+  *
+  * @param movieCatalogue movie service provider
+  * @param invoiceRepository invoice repository
+  * @param context implicit asynchronous context
+  */
 class ReturnApi @Inject()(movieCatalogue: MovieCatalogue,
                           invoiceRepository: InvoiceRepository)(implicit val context: ExecutionContext) extends Controller {
 

@@ -12,7 +12,7 @@ import slick.driver.JdbcProfile
 import scala.concurrent.{ExecutionContext, Future}
 
 class InvoiceRepository @Inject()(protected val dbConfigProvider: DatabaseConfigProvider,
-                                 implicit val context: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
+                                  implicit val context: ExecutionContext) extends HasDatabaseConfigProvider[JdbcProfile] {
   import driver.api._
 
   private val Invoices = TableQuery[InvoicesTable]

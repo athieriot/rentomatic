@@ -12,6 +12,16 @@ import services.MovieCatalogue
 import scala.concurrent.Future._
 import scala.concurrent.{ExecutionContext, Future}
 
+/**
+  * Once a customer found a movie, he will be able to request for a preview of the pricing
+  * (Given a movie id and a number of days he would like to)
+  *
+  * Then a proper rental will result in an invoice which going to be persisted in order to follow returns later on.
+  *
+  * @param movieCatalogue movie service provider
+  * @param invoiceRepository invoice repository
+  * @param context implicit asynchronous context
+  */
 class RentalApi @Inject()(movieCatalogue: MovieCatalogue,
                           invoiceRepository: InvoiceRepository)(implicit val context: ExecutionContext) extends Controller {
 

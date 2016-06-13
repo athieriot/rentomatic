@@ -11,6 +11,20 @@ import services.MovieCatalogue
 
 import scala.concurrent.ExecutionContext
 
+/** ************
+  * Start here !
+  * ************
+  *
+  * Searching for a movie a customer would like to rent.
+  * A movie can be searched by title or by the most popular.
+  *
+  * On top of the title or the release date (And a post URL !),
+  * a movie entity includes a unique ID that will be used across the rest of the API.
+  *
+  * @param movieCatalogue movie service provider
+  * @param invoiceRepository invoice repository
+  * @param context implicit asynchronous context
+  */
 class MovieApi @Inject() (movieCatalogue: MovieCatalogue,
                           invoiceRepository: InvoiceRepository)(implicit val context: ExecutionContext) extends Controller {
 

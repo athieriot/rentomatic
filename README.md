@@ -4,7 +4,7 @@
 
 Movie rental application
 
-You can visit online: https://rent-o-matic.herokuapp.com
+You can visit online: [https://rent-o-matic.herokuapp.com](https://rent-o-matic.herokuapp.com)
 
 ## Usage
 
@@ -54,6 +54,11 @@ Swagger UI accessible through: [http://localhost:9000/api/docs](http://localhost
            
     curl "http://localhost:9000/api/profile/bonus" | python -m json.tool
 
-# Deployment
+## Next ?
+
+- The next step would be to add an Authentication mecanism (Silhouette is a great framework for that).
+- Then providing a GUI for it (Web app or Mobile app) would be great (Posters !) and it might highlight some issues with the data returned by the API (Like need for more data or a different schema)
+
+## Deployment
 
       git push heroku master

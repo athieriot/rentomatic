@@ -22,6 +22,12 @@ case class Invoice(id: UUID,
 
   def isComplete = returnDate.isDefined
 
+  /**
+    * Core rule to calculate returns late extra charge.
+    *
+    * @param returnDate Optional return date when it's not "now". Useful for testing purposes.
+    * @return a new Invoice instance with returnDate and extraCharge populated.
+    */
   def complete(returnDate: Option[Instant]): Invoice = this.isComplete match {
     case _ if returnDate.exists(_.isBefore(date.toInstant)) => throw new IllegalArgumentException("Not possible to return a movie in the past")
     case true => throw new IllegalStateException("This invoice has already been completed")
